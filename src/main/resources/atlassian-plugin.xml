@@ -1,0 +1,159 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    	<param name="configure.url">/admin/hipchat.action</param>
+    </plugin-info>
+
+    <rest name="Hip Chat Proxy" i18n-name-key="hipchat-proxy.name" key="hipchat-proxy" path="/hipchatproxy"
+          version="1">
+        <description key="hipchat-proxy.description">Hip Chat Proxy Plugin</description>
+    </rest>
+
+    <resource type="i18n" name="i18n" location="atlassian-plugin"/>
+
+    <web-resource name="Resources" key="resources">
+        <resource name="status.js" type="download" location="js/status.js"/>
+        <resource name="styles.css" type="download" location="css/styles.css"/>
+        <resource type="download" name="images/" location="images/"/>
+        <context>main</context>
+    </web-resource>
+
+    <web-resource name="Image Resources" key="image-resources">
+        <resource name="hipchat-icon.png" type="download" location="images/hipchat-icon.png">
+            <param name="content-type" value="image/png"/>
+        </resource>
+    </web-resource>
+
+    <web-resource name="Space config" key="space-config">
+        <resource name="underscore.js" type="download" location="js/underscore-min.js"/>
+        <resource name="backbone.js" type="download" location="js/backbone-min.js"/>
+        <resource name="space.js" type="download" location="js/space.js"/>
+    </web-resource>
+
+    <component-import key="applicationProperties" interface="com.atlassian.sal.api.ApplicationProperties"/>
+    <component name="Annotated Event Listener" key="annotated-listener"
+               class="com.go2group.hipchat.components.AnnotatedListener"/>
+
+    <component-import name="Request Factory" key="request-factory" interface="com.atlassian.sal.api.net.RequestFactory" />
+    <component-import name="Executor Factory" key="executor-factory" interface="com.atlassian.sal.api.executor.ThreadLocalDelegateExecutorFactory" />
+
+    <component name="HipChat Proxy Client" key="proxy-client"
+               class="com.go2group.hipchat.components.HipChatProxyClient"/>
+
+    <component-import key="pluginSettingsFactory"
+                      interface="com.atlassian.sal.api.pluginsettings.PluginSettingsFactory"/>
+
+    <component name="Configuration Manager"
+               key="configurationManager"
+               class="com.go2group.hipchat.components.ConfigurationManager">
+        <description>Stores the details of the configured HipChat settings in Bandana</description>
+    </component>
+
+    <!-- Admin config -->
+    <xwork name="configurationAction" key="configurationAction">
+        <package name="configure" extends="default" namespace="/admin">
+            <default-interceptor-ref name="defaultStack"/>
+
+            <action name="hipchat" class="com.go2group.hipchat.actions.ViewConfigurationAction">
+                <result name="success" type="velocity">/templates/admin/configuration.vm</result>
+            </action>
+            <action name="doconfigure-hipchat" class="com.go2group.hipchat.actions.SaveConfigurationAction">
+                <interceptor-ref name="validatingStack"/>
+                <param name="RequireSecurityToken">true</param>
+                <result name="input" type="velocity">/templates/admin/configuration.vm</result>
+                <result name="error" type="velocity">/templates/admin/configuration.vm</result>
+                <result name="redirect" type="redirect">/spaces/hipchat.action?key=${spaceKey}</result>
+                <result name="success" type="redirect">/admin/hipchat.action?result=success</result>
+            </action>
+
+        </package>
+    </xwork>
+
+    <web-item key="hipchat-configuration" name="HipChat Configuration" section="system.admin/configuration"
+              weight="1000">
+        <description key="hipchat-configuration.name">HipChat Configuration</description>
+        <label key="hipchat-configuration.name"/>
+        <link linkId="hipchat-configuration">/admin/hipchat.action</link>
+        <condition class="com.atlassian.confluence.plugin.descriptor.web.conditions.ConfluenceAdministratorCondition"/>
+    </web-item>
+
+    <!-- Space config -->
+    <xwork name="spaceConfigurationAction" key="spaceConfigurationAction">
+        <package name="space-configure" extends="default" namespace="/spaces">
+            <default-interceptor-ref name="defaultStack"/>
+
+            <action name="hipchat" class="com.go2group.hipchat.actions.ViewSpaceConfigurationAction">
+                <result name="success" type="velocity">/templates/admin/space-config.vm</result>
+                <result name="input" type="velocity">/templates/admin/space-config-no-auth-token.vm</result>
+                <result name="error" type="velocity">/templates/admin/space-config-invalid-auth-token.vm</result>
+            </action>
+            <action name="doconfigure-hipchat" class="com.go2group.hipchat.actions.SaveSpaceConfigurationAction">
+                <interceptor-ref name="validatingStack"/>
+                <param name="RequireSecurityToken">true</param>
+                <result name="input" type="velocity">/templates/admin/space-config.vm</result>
+                <result name="error" type="velocity">/templates/admin/space-config.vm</result>
+                <result name="success" type="redirect">/spaces/hipchat.action?key=${key}&amp;result=success</result>
+            </action>
+
+        </package>
+    </xwork>
+
+	<!-- For documentation theme -->
+	<web-item key="hipchat-space-configuration1" name="HipChat Space Configuration"
+              section="system.space.admin/security"
+              weight="1000">
+        <description key="hipchat-space-configuration.name">Go2Group HipChat Space Configuration</description>
+        <label key="hipchat-space-configuration.name"/>
+        <link linkId="hipchat-space-configuration">/spaces/hipchat.action?key=$generalUtil.urlEncode($space.key)</link>
+        <icon height="16" width="16">
+            <link absolute="true">
+                $webResourceManager.getStaticPluginResource("${project.groupId}.${project.artifactId}:image-resources",
+                "hipchat-icon.png")
+            </link>
+        </icon>
+        <condition class="com.atlassian.confluence.plugin.descriptor.web.conditions.SpacePermissionCondition">
+            <param name="permission">administer</param>
+        </condition>
+        <condition class="com.atlassian.confluence.plugin.descriptor.web.conditions.NotPersonalSpaceCondition"/>
+    </web-item>
+    
+    <web-item key="hipchat-space-configuration2" name="HipChat Space Configuration"
+              section="system.space.tools/integrations"
+              weight="1000">
+        <description key="hipchat-space-configuration.name">Go2Group HipChat Space Configuration</description>
+        <label key="hipchat-space-configuration.name"/>
+        <link linkId="hipchat-space-configuration">/spaces/hipchat.action?key=$generalUtil.urlEncode($space.key)</link>
+        <icon height="16" width="16">
+            <link absolute="true">
+                $webResourceManager.getStaticPluginResource("${project.groupId}.${project.artifactId}:image-resources",
+                "hipchat-icon.png")
+            </link>
+        </icon>
+        <condition class="com.atlassian.confluence.plugin.descriptor.web.conditions.SpacePermissionCondition">
+            <param name="permission">administer</param>
+        </condition>
+        <condition class="com.atlassian.confluence.plugin.descriptor.web.conditions.NotPersonalSpaceCondition"/>
+    </web-item>
+    
+    <!-- Announcement config -->
+    <xwork name="announcementAction" key="announcementAction">
+        <package name="announcements" extends="default" namespace="/admin">
+            <default-interceptor-ref name="defaultStack"/>
+
+            <action name="view-announce" class="com.go2group.hipchat.actions.ViewAnnouncementAction">
+                <result name="success" type="velocity">/templates/admin/announcement.vm</result>
+            </action>
+            <action name="announce" class="com.go2group.hipchat.actions.SendAnnouncementAction">
+                <interceptor-ref name="validatingStack"/>
+                <param name="RequireSecurityToken">true</param>
+                <result name="input" type="velocity">/templates/admin/announcement.vm</result>
+                <result name="error" type="velocity">/templates/admin/announcement.vm</result>
+                <result name="success" type="redirect">/admin/view-announce.action?result=success</result>
+            </action>
+
+        </package>
+    </xwork>
+
+</atlassian-plugin>

@@ -1,0 +1,40 @@
+#* @vtlvariable name="action" type="com.atlassian.confluence.spaces.actions.EditSpaceEntryAction" *#
+#requireResource("confluence.web.resources:space-admin")
+
+<html>
+<head>
+    <title>HipChat Configuration</title>
+    <meta name="decorator" content="atl.general"/>
+</head>
+    #applyDecorator("root")
+    #decoratorParam("helper" $action.helper)
+    #decoratorParam("context" "space-administration")
+    #decoratorParam("mode" "view-space-administration")
+
+    #applyDecorator ("root")
+    #decoratorParam ("context" "spaceadminpanel")
+    #decoratorParam ("selection" "hipchat-space-configuration")
+    #decoratorParam ("title" "HipChat Configuration")
+    #decoratorParam ("selectedTab" "admin")
+    #decoratorParam("helper" $action.helper)
+
+<body>
+    <form class="aui">
+        <h2>HipChat Configuration</h2>
+        <div class="aui-message error shadowed">
+            <p class="title">
+                <span class="aui-icon icon-error"></span>
+                <strong>Your HipChat Auth Token appears to be invalid.</strong>
+            </p>
+            <p>
+                Make sure your
+                <a href="https://hipchat.com/admin/api" title="HipChat API Tokens" target="_blank">HipChat API Auth Token</a>
+                is configured properly on the <a href="../admin/hipchat.action?spaceKey=$!key">Confluence HipChat Configuration page</a>.
+                Make sure you're using an <b>Admin</b> token, not a <b>Notification</b> token.
+            </p>
+        </div><!-- .aui-message -->
+    </form>
+</body>
+</html>
+#end
+#end

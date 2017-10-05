@@ -1,0 +1,56 @@
+<html>
+<head>
+    <title>HipChat Configuration</title>
+</head>
+<body>
+<form action="$req.contextPath/admin/doconfigure-hipchat.action" method="post" class="aui">
+    #form_xsrfToken()
+    <input type="hidden" name="spaceKey" value="$!req.getParameter("spaceKey")" />
+    <h2>HipChat API Auth Token Configuration</h2>
+
+    #if($actionErrors && $actionErrors.size() > 0)
+    <div class="aui-message error">
+        <span class="svg-icon error size-18"></span>
+        <strong>$action.getText("errors.occurred")</strong>
+        <ul>
+            #foreach($error in $actionErrors)
+                <li>$error</li>
+            #end
+        </ul>
+    </div>
+    #end
+    #if($action.successFullUpdate)
+        <div class="aui-message success shadowed closeable">
+            <p class="title">
+                <span class="aui-icon icon-success"></span>
+                <strong>$action.getText("hipchat.action.success.apitokenconfig")</strong>
+            </p>
+        </div>
+        <!-- .aui-message -->
+    #end
+
+    <p>
+        Confluence accesses HipChat through the HipChat API. This API is protected by an API token. To request an
+        API token, go to <a href="https://hipchat.com/admin/api" target="_blank">HipChat's API Auth Token
+        page</a> then
+        generate an <b>Admin</b> token. Copy and paste that token to the field below.
+    </p>
+
+
+
+    <div class="field-group">
+        <label for="hipChatAuthToken">Admin Token<span class="aui-icon icon-required"></span><span class="content"> required</span></label>
+        <input id="hipChatAuthToken" class="text" type="text" name="hipChatAuthToken" value="$action.hipChatAuthToken"/>
+    </div>
+
+    <div class="buttons-container">
+        <div class="buttons">
+            <input class="button submit" type="submit" value="Save"/>
+            #if($action.hipChatAuthToken)
+            	<a href="$req.contextPath/admin/view-announce.action">Announcements</a>
+            #end
+        </div>
+    </div>
+</form>
+</body>
+</html>

@@ -1,0 +1,13 @@
+package com.go2group.hipchat.utils;
+
+public class StringUtils {
+
+	public static boolean isEmpty(String str){
+		if (str != null && str.trim().length() > 0){
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+}

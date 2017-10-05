@@ -1,0 +1,95 @@
+#* @vtlvariable name="action" type="com.go2group.hipchat.actions.ViewSpaceConfigurationAction" *#
+#requireResource("confluence.web.resources:space-admin")
+
+<html>
+<head>
+    <title>HipChat Configuration</title>
+    <meta name="decorator" content="atl.general"/>
+</head>
+    #applyDecorator("root")
+    #decoratorParam("helper" $action.helper)
+    #decoratorParam("context" "space-administration")
+    #decoratorParam("mode" "view-space-administration")
+
+    #applyDecorator ("root")
+    #decoratorParam ("context" "spaceadminpanel")
+    #decoratorParam ("selection" "hipchat-space-configuration")
+    #decoratorParam ("title" "HipChat Configuration")
+    #decoratorParam ("selectedTab" "admin")
+    #decoratorParam("helper" $action.helper)
+
+<body>
+<script id="rooms-tmpl" type="text/tmpl">
+    <% _.each(rooms, function(room){ %>
+    <div class="checkbox">
+        <input class="checkbox" type="checkbox" <%= room.checked %> name="roomId" value="<%- room.room_id %>">
+        <label for="<%- room.room_id %>"><%- room.name %></label>
+    </div>
+    <% }) %>
+</script>
+
+## Don't escape the JSON string
+#set($roomJsonHtml = $action.roomJson)
+<script type="text/javascript">
+    var hcRoomIds = "$action.roomId",
+            hcRooms = $roomJsonHtml;
+</script>
+<form id="hipchat-form" action="doconfigure-hipchat.action" method="post"
+      class="aui edit-space-details">
+    <h2>HipChat Configuration</h2>
+    #form_xsrfToken()
+    <input type="hidden" name="key" value="$generalUtil.urlEncode($action.key)"/>
+        #if($actionErrors && $actionErrors.size() > 0)
+        <div class="aui-message error">
+            <span class="svg-icon error size-18"></span>
+            <strong>$action.getText("errors.occurred")</strong>
+            <ul>
+                #foreach($error in $actionErrors)
+                    <li>$error</li>
+                #end
+            </ul>
+        </div>
+        #end
+        #if($action.successFullUpdate)
+            <div class="aui-message success shadowed closeable">
+                <p class="title">
+                    <span class="aui-icon icon-success"></span>
+                    <strong>$action.getText("hipchat.action.success.spaceconfig")</strong>
+                </p>
+            </div>
+        #end
+    <p>
+        Confluence can notify HipChat when an event occurs in this space. Just pick the HipChat room(s)
+        where you would like notifications sent.
+    </p>
+
+    <fieldset class="group" id="rooms">
+        <legend><span>Rooms</span></legend>
+        <div id="room-list"></div>
+    </fieldset>
+    
+    <p>
+        Select the events to be notified in this space. If none selected, all events will be notified.
+    </p>
+    
+    <fieldset class="group" id="events">
+        <legend><span>Events</span></legend>
+        #foreach($event in $events)
+		    <div class="checkbox">
+		        <input class="checkbox" type="checkbox" name="selectedEvents" value="$event" #if($action.isSelectedEvent($event)) checked #end>
+		        <label for="$event">$event</label>
+		    </div>
+	    #end
+    </fieldset>
+
+    <div class="buttons-container">
+        <div class="buttons">
+            <input class="button submit" type="submit" value="Save"/>
+        </div>
+    </div>
+</form>
+    #requireResource("com.go2group.hipchat-confluence:space-config")
+</body>
+</html>
+#end
+#end
